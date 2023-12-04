@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="dbproject-1-suite.xml" />
+	<munit:test name="dbproject-select-test-recordfound" doc:id="a4241004-cf58-42e3-a81a-9043fef1e097" >
+		<munit:behavior >
+			<munit:set-event doc:name="Set Input" doc:id="de532132-fb6a-4d51-b2e5-ab9cccfd712f" >
+				<munit:payload value="#[output application/json  --- readUrl('classpath://dbprojectselecttestrecordfound\set-event_payload.dwl')]" encoding="UTF-8" mediaType="application/json " />
+				<munit:attributes value="#[readUrl('classpath://dbprojectselecttestrecordfound\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to dbproject-1Flow" doc:id="df72c7a5-a8ab-4b0f-a40b-633d241e7fa9" name="dbproject-1Flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="6e0e1b82-f879-420e-a503-7a30b9d0d69e" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import dbprojectselecttestrecordfound::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="dbproject-recordnotfound-test" doc:id="6483a3be-3bed-4139-8fcb-6629553ae1d2" >
+		<munit:behavior >
+			<munit:set-event doc:name="Set Input" doc:id="273d2da4-3348-494f-870f-07933410fcd8" >
+				<munit:payload value="#[output application/json  --- readUrl('classpath://dbprojectrecordnotfoundtest\set-event_payload.dwl')]" encoding="UTF-8" mediaType="application/json " />
+				<munit:attributes value="#[readUrl('classpath://dbprojectrecordnotfoundtest\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to dbproject-1Flow" doc:id="bdb69e2a-6e47-43fc-9540-40067b868f35" name="dbproject-1Flow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="c5536603-1958-4a73-a78b-e6986897514e" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import dbprojectrecordnotfoundtest::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c7025396-e73a-4c55-9840-034459549d83" >
+		<http:listener-connection host="0.0.0.0" port="8085" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="a779f708-0b9c-4cea-b358-09f047c4656d" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="mulesoft1" />
+	</db:config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="c1df7ff1-0e72-4680-a95c-7516d5af5aba" >
+		<file:connection workingDir="D:\" />
+	</file:config>
+	<http:listener-config name="HTTP_Listener_config1" doc:name="HTTP Listener config" doc:id="cbce5efb-05d3-4cc2-af10-e0e62ff3d14b" >
+		<http:listener-connection host="0.0.0.0" port="8084" />
+	</http:listener-config>
+	<http:listener-config name="HTTP_Listener_config2" doc:name="HTTP Listener config" doc:id="3c636636-0f02-4f34-9515-9c7d4cad780e" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:listener-config name="HTTP_Listener_config3" doc:name="HTTP Listener config" doc:id="596fe145-b5a9-4c9a-8108-4fda978bb9eb" >
+		<http:listener-connection host="0.0.0.0" port="8087" />
+	</http:listener-config>
+	<http:listener-config name="HTTP_Listener_config4" doc:name="HTTP Listener config" doc:id="5b833e6e-d0b9-4e3e-bd7b-6ab1a55724d8" >
+		<http:listener-connection host="0.0.0.0" port="8089" />
+	</http:listener-config>
+	<flow name="dbproject-1Flow" doc:id="2c330a2c-6b94-4b7b-a080-74fab64348fa" >
+		<http:listener doc:name="Listener" doc:id="a1e9605b-c541-427f-bae4-9d563d1a868e" config-ref="HTTP_Listener_config" path="/dbselect"/>
+		<logger level="INFO" doc:name="Logger" doc:id="4af9d2dd-e265-4973-af07-a144a67f4b30" message='"before connteting to db with job id"'/>
+		<set-variable value="#[attributes.queryParams.minsalary]" doc:name="minsalary" doc:id="ba27a3b0-ffd0-46fd-9f58-746927e2d29e" variableName="minsalary"/>
+		<db:select doc:name="Select" doc:id="6daf7549-0080-4332-9660-7a27c63e18d8" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from jobs where job_id=:job_id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="25322463-2c9b-4177-bbee-30dd88ecef89" >
+			<when expression="#[sizeOf(payload) &gt;0]">
+				<ee:transform doc:name="Transform Message" doc:id="14f66994-be5d-430d-97b7-4f53e5b6e798">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message1" doc:id="472c2e80-5e14-44a0-94f2-6dc15fe49d28">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"the given job id is not present in database"]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="dbproject-1Flow1" doc:id="0013e7fa-7fb7-4a2b-b7ee-835f4ef4e73c" >
+		<http:listener doc:name="Listener" doc:id="9392d7cc-9d52-4a7e-93ec-1147e589a913" config-ref="HTTP_Listener_config1" path="/insert" allowedMethods="post"/>
+		<logger level="INFO" doc:name="Logger" doc:id="80a518c7-b498-4b64-a5e0-494126b06f46" message='"before insertion"'/>
+		<set-payload value="#[payload]" doc:name="input" doc:id="35e10344-1b7e-4c09-a443-e4110a2af2c7" />
+		<parallel-foreach doc:name="Parallel For Each" doc:id="cbd36ab0-149f-4b11-a75d-3fe839a9af0b" >
+			<db:insert doc:name="Insert" doc:id="7b1a0703-c40c-4c8d-9c5c-55222d0cd570" config-ref="Database_Config">
+			<db:sql><![CDATA[INSERT INTO jobs(job_id,job_title,min_salary,max_salary)
+ VALUES (:job_id,:job_title,:min_salary,:max_salary);]]></db:sql>
+			<db:input-parameters><![CDATA[#[payload]]]></db:input-parameters>
+		</db:insert>
+			<logger level="INFO" doc:name="Logger" doc:id="7d78922a-4318-43aa-b6dd-0cc866441dd0" message='"insertion order is done for"#[vars.counter]' />
+			<ee:transform doc:name="Transform Message" doc:id="a26c8aa8-a0d2-40dc-8e96-0fb422d76bb0">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</parallel-foreach>
+		<ee:transform doc:name="Transform Message" doc:id="7b95819a-48fb-4a78-99df-a03cea1c3f7b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="dbproject-1Flow2" doc:id="ae10e605-779e-4bc7-9132-52cbde3cf5f4" >
+		<http:listener doc:name="Listener" doc:id="af0f24a2-1c77-416f-9390-1c9a8bbae4bd" config-ref="HTTP_Listener_config3" path="/delete" allowedMethods="delete"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ca037716-4083-4f19-8029-0bdeb9f3d737" category="/delete"/>
+		<db:delete doc:name="Delete" doc:id="d126273d-b689-4fef-b4b8-6ecdc0ed455e" config-ref="Database_Config">
+			<db:sql ><![CDATA[delete from jobs ]]></db:sql>
+			<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+		</db:delete>
+		<ee:transform doc:name="Transform Message" doc:id="0ed742e4-09d2-4f0f-a65e-6d737247d103" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="dbproject-1Flow3" doc:id="d2ba557b-b0b3-4273-b599-5aee053ba6d5" >
+		<http:listener doc:name="Listener" doc:id="ec7d310a-ad4f-480d-9ba7-eaced0a03ca3" config-ref="HTTP_Listener_config4" path="/update" allowedMethods="put"/>
+		<logger level="INFO" doc:name="Logger" doc:id="7061d910-8bfc-4366-97c2-4d48f7065486" message='"before update"'/>
+		<db:update doc:name="Update" doc:id="73bc9d97-d385-4298-ad64-412db59dd315" config-ref="Database_Config">
+			<db:sql ><![CDATA[update jobs set min_salary=:min_salary where job_id=:job_id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="4d907538-dfcc-4ef6-9ee7-2c50dc5e4f9c">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"updated row sucessfully"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
